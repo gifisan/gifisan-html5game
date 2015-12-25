@@ -1,4 +1,4 @@
-# yoocent-html5game
+# gifisan-html5game
 HTML5 Hello World
 
 github: http://gifisan.github.io/gifisan-html5game/
