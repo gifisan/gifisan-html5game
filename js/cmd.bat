@@ -1,0 +1,1 @@
+node D:\Pro\UglifyJS-master\bin\uglifyjs Test1-debug.js > Test1-min.js

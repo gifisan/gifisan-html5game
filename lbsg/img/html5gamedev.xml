@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<TextureAtlas imagePath="donghua.png">
+	<!-- Created with Adobe Flash CS6 version 12.0.0.481 -->
+	<!-- http://www.adobe.com/products/flash.html -->
+	<SubTexture name="fashi0000" x="206" y="340" width="47" height="93" frameX="-19" frameY="-5" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0001" x="154" y="340" width="51" height="94" frameX="-18" frameY="-1" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0002" x="1" y="405" width="54" height="95" frameX="-16" frameY="0" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0003" x="1" y="405" width="54" height="95" frameX="-16" frameY="0" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0004" x="56" y="405" width="65" height="76" frameX="0" frameY="-27" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0005" x="122" y="435" width="59" height="75" frameX="0" frameY="-28" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0006" x="182" y="435" width="59" height="73" frameX="0" frameY="-30" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0007" x="182" y="435" width="59" height="73" frameX="0" frameY="-30" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="fashi0008" x="182" y="435" width="59" height="73" frameX="0" frameY="-30" frameWidth="70" frameHeight="103"/>
+	<SubTexture name="niao0000" x="1" y="140" width="75" height="149" frameX="-19" frameY="0" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0001" x="104" y="112" width="84" height="137" frameX="-31" frameY="-4" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0002" x="104" y="1" width="108" height="110" frameX="-13" frameY="-17" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0003" x="189" y="112" width="63" height="117" frameX="-7" frameY="-32" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0004" x="1" y="290" width="60" height="114" frameX="-10" frameY="-31" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0005" x="189" y="230" width="64" height="109" frameX="-4" frameY="-32" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0006" x="77" y="250" width="76" height="105" frameX="0" frameY="-39" frameWidth="121" frameHeight="149"/>
+	<SubTexture name="niao0007" x="1" y="1" width="102" height="138" frameX="-13" frameY="-8" frameWidth="121" frameHeight="149"/>
+</TextureAtlas>
