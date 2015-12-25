@@ -2,12 +2,12 @@
 HTML5 Hello World
 
 首页
-<a href="http://gifisan.github.io/gifisan-html5game/index-debug.html" target="_blank"/>
+<a href="http://gifisan.github.io/gifisan-html5game/index-debug.html" target="_blank"></a>
 
 龙霸三国
-<a href="http://gifisan.github.io/gifisan-html5game/lbsg/index-debug.html" target="_blank"/>
+<a href="http://gifisan.github.io/gifisan-html5game/lbsg/index-debug.html" target="_blank"/></a>
 
 塔防
-<a href="http://gifisan.github.io/gifisan-html5game/pvz/index.html" target="_blank"/> 
+<a href="http://gifisan.github.io/gifisan-html5game/pvz/index.html" target="_blank"/></a>
 
 
