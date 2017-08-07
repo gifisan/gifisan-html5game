@@ -1,9 +1,12 @@
 # html5game
 HTML5 Hello World
 
-* 首页 http://gifisan.github.io/gifisan-html5game/index-debug.html
-		
-* 龙霸三国 http://gifisan.github.io/gifisan-html5game/lbsg/index-debug.html
-		
-* 塔防 http://gifisan.github.io/gifisan-html5game/pvz/index.html
-		
+github: http://kevin-better.github.io/html5game/
+
+
+首页: http://kevin-better.github.io/html5game/index-debug.html
+
+龙霸三国: http://kevin-better.github.io/html5game/lbsg/index-debug.html
+
+塔防: http://kevin-better.github.io/html5game/pvz/index.html
+
