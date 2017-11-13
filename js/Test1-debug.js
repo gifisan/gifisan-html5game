@@ -8,33 +8,31 @@
 //
 (function(Game){
 	Game = window.Game = Game || window.Game || new function Game(){};
-	Game.math = Game.math || new function(){};
-	window.$gm = Game.math;
-	Game.version = Game.version || '1.02';
-	var check=function(r){
-		return r.test(navigator.userAgent.toLowerCase());
-	};
-	Game.isIE=!check(/opera/) && check(/msie/);
+	Game.math = window.$gm = Game.math || new function(){};
+	Game.version = Game.version || "1.02";
 	Game.enableDebug = true;
+	Game.showClassPath = false;
 	Game.genId = Game.genId || 1000;
 	Game.ui = Game.ui || new function(){};
 	Game.util = Game.util || new function(){};
 	Game.classes = Game.classes || new function(){};
 	Game.comps = Game.comps || new function(){};
-	Game.apply = function(object, config,ignore) {
+	Game.apply = function(object, config, ignore) {
 		if(object && config){
-			var temp1 = {'toString':true};
-			var p = typeof(object) == 'function' ? object.prototype : object;
-			var c = typeof(config) == 'function' ? config.prototype : config;
-			if(ignore){
-				for (var k in c) {
-					if(temp1[k] || !ignore[k]){
-						p[k] = c[k];
-					}
+			if(ignore == null){
+				ignore = {};
+			}
+			ignore["toString"] = true;
+			var op = typeof(object) == "function" ? object.prototype : object;
+			for (var i in config) {
+				if(ignore[i]){
+					continue;
 				}
-			}else{
-				for (var k in c) {
-					p[k] = c[k];
+				var item = config[i];
+				if(typeof item == "function"){
+					op[i] = config[i];
+				}else{
+					object[i] = config[i];
 				}
 			}
 		}
@@ -46,7 +44,7 @@
 			var method = this;
 			return function(){
 				var args = args;
-				if(arguments.length > 0){
+				if(Game.isNull(args)){
 					args = arguments;
 				}
 				return method.apply(scope || window ,args);
@@ -55,26 +53,31 @@
 	});
 	
 	Game.apply(Game,{
+		isIE: function(){
+			var check=function(r){
+				return r.test(navigator.userAgent.toLowerCase());
+			};
+			return !check(/opera/) && check(/msie/);
+		}(),
 		reg: function(name,clazz){
 			if(this.classes[name]){
-				this.warn('Class repeat:'+name);
+				this.warn("Class repeat:"+name);
 			}
 			this.classes[name] = clazz;
 			clazz.prototype.xtype = name;
 		},
 		namespace: function(name) {
-			var parts = name.split('.');  
+			var parts = name.split(".");  
 			var container = window;
 			if(!container[parts[0]]){
-				eval('var ' + parts[0] + ' = ' + parts[0] + ' || new function(){};window.'+parts[0]+'='+parts[0]);
+				eval("var " + parts[0] + " = " + parts[0] + " || new function(){};window."+parts[0]+"="+parts[0]);
 			}
 			for(var i = 0; i < parts.length; i++) {
 				var part = parts[i];    
 				if (!container[part])
-					eval(parts.slice(0,i+1).join('.') + '=' + parts.slice(0,i+1).join('.') + '|| new function(){}');
-					//container[part] = new function(){};
+					eval(parts.slice(0,i+1).join(".") + "=" + parts.slice(0,i+1).join(".") + "|| new function(){}");
 				else if (typeof container[part] != "object") {
-					var n = parts.slice(0,i).join('.');  
+					var n = parts.slice(0,i).join(".");  
 					throw n + " already exists and is not an object";
 				}  
 				container = container[part];  
@@ -100,7 +103,7 @@
 				o.id = id;
 			}
 			if(this.comps[o.id]){
-				//this.warn('Component repeat:'+o.toString());
+				//this.warn("Component repeat:"+o.toString());
 			}
 			this.comps[o.id] = o;
 			if(o.init){
@@ -123,7 +126,7 @@
 			console.error(object);
 		},
 		getId: function(t){
-			return t+'-gen-'+(this.genId++);
+			return t+"-gen-"+(this.genId++);
 		},
 		get: function(id){
 			var dom = document.getElementById(id);
@@ -135,16 +138,15 @@
 		getCmp: function(id){
 			return this.comps[id];
 		},
-		onReady: function(fun){
-			window.onload = fun;
+		onReady: function(fn){
+			window.onload = fn;
 		},
 		copy: function(o){
 			if(o == null){
 				return o;
-			}
-			if(o.xtype){
+			}else if(o.xtype){
 				throw o.xtype;
-				return Game.create(o.xtype);
+				//return Game.create(o.xtype);
 			}else if(this.isObject(o)){
 				var c = {};
 				for(var i in o){
@@ -170,43 +172,40 @@
 				}
 			}
 			return array;
-		}
-	})
-	
-	Game.apply(Game, {
+		},
+		isObject: function(o){
+			return Array.isArray(o) ? false : typeof o == "object";
+		},
+		isArray: function(o){
+			return Array.isArray(o);
+		},
+		isNull: function(o){
+			return o === null || o === undefined;
+		},
 		applyIf: function(object, config) {
 			if(config && object){
 				var temp = {xtype:true,init:true};
-				var p = typeof(object) == 'function' ? object.prototype : object;
-				var c = typeof(config) == 'function' ? config.prototype : config;
+				var p = typeof(object) == "function" ? object.prototype : object;
+				var c = typeof(config) == "function" ? config.prototype : config;
 				for (var k in c) {
 					if(!temp[k] && p[k] == null){
 						p[k] = c[k];
 					}
 				}
 			}
-		},
-		isObject: function(o){
-			return Array.isArray(o) ? false : typeof o == 'object';
-		},
-		isArray: function(o){
-			return Array.isArray(o);
-		},
-		isNull: function(o){
-			return o == null || o == undefined;
 		}
-	});
+	})
 
 	Game.apply(Game, {
-		extend: function(){
-			var _fun_config = ' = ' + (function(){
+		extend: function(Game){
+			var fun_config_str = " = " + (function(){
 				superc.apply(this,arguments);
 				for(var i in config){
 					this[i] = Game.copy(config[i]);
 				}
 			}).toString();
 			
-			var _fun = ' = ' + (function(){
+			var fun_str = " = " + (function(){
 				superc.apply(this,arguments);
 			}).toString();
 
@@ -214,23 +213,27 @@
 				if(son == null){
 					return this.extend(this.Object,superc);
 				}
-				if(!this.isObject(son)){
-					throw new Error('son is not a object.');
+				if(!Game.isObject(son)){
+					throw new Error("son is not a object.");
 				}
-				var F = function(){};
-				F.prototype = superc.prototype;
+				if(Game.isNull(son.className)){
+					throw new Error("no class name for son");
+				}
 				var config = {};
 				var empty_config = true;
+				var className = son.className;
+				delete son.className;
 				for(var i in son){
-					if(typeof son[i] != 'function' && i != 'className'){
+					if(typeof son[i] != "function"){
 						config[i] = son[i];
 						empty_config = false;
 					}
 				}
+				Game.showClassPath = false;
 				var sonc = null;
-				if(son.className){
-					eval(son.className + (empty_config ? _fun : _fun_config));
-					eval('sonc = '+son.className);
+				if(Game.showClassPath){
+					eval(className + (empty_config ? fun_str : fun_config_str));
+					eval("sonc = "+className);
 				}else{
 					if(empty_config){
 						sonc = function(){
@@ -242,28 +245,27 @@
 							for(var i in config){
 								this[i] = Game.copy(config[i]);
 							}
-						};
+						}
 					}
 				}
-				sonc.prototype = new F();
+				var supp = superc.prototype;
+				var sonp = sonc.prototype;
+				for(var i in supp){
+					sonp[i] = supp[i];
+				}
 				for(var i in son){
-					if(typeof son[i] == 'function' || i == 'className'){
+					if(typeof son[i] == "function"){
+						if(sonc.prototype[i] != null){
+							son[i].superMethod = sonc.prototype[i];
+						}
 						sonc.prototype[i] = son[i];
 					}
 				}
+				sonc.prototype["className"] = className;
 				sonc.prototype.superClass = superc.prototype;
 				return sonc;
 			};
-		}.delegate(Game)(),
-		override: function(origclass, overrides) {
-			if(overrides){
-				var p=origclass.prototype;
-	            Game.apply(p, overrides);
-	            if(Game.isIE && overrides.toString != origclass.toString){
-	                p.toString=overrides.toString;
-	            }
-	        }
-		}
+		}.delegate(Game)(Game)
 	});
 	
 	//下面是一些数学计算
@@ -318,7 +320,7 @@
 	})
 	
 	//创建AStar对象
-	Game.namespace('Game.math.AStar');
+	Game.namespace("Game.math.AStar");
 	
 	//一些需要持久对象的算法，抽象成类
 	Game.apply(Game.math.AStar,{
@@ -350,7 +352,7 @@
 		findFalg: false,
 		//Open Node cache
 		OpenTable: {},
-		className: 'Game.math.AStar',
+		className: "Game.math.AStar",
 		reset: function(sx,sy,width,height,map){
 			this.sx = sx;
 			this.sy = sy;
@@ -551,21 +553,16 @@
 	
 	//基类
 	Game.Object = Game.extend(Object,{
-		className: 'Game.Object',
-		superCall: function(name,object,args){
-			var _function = object[name];
-			var superClass = object.superClass;
-			while(!superClass.hasOwnProperty(name) || superClass[name] == _function){
-				superClass = superClass.superClass;
-				if(superClass.xtype == null){
-					return false;
-				}
+		className: "Game.Object",
+		superCall: function(fn,args){
+			var superMethod = fn.superMethod;
+			if(superMethod == null){
+				return;
 			}
-			var fun = superClass[name];
-			fun.call(object,args);
+			superMethod.apply(this,args);
 		},
 		toString: function(){
-			return (this.className?this.className:this.xtype)+'@'+this.id
+			return (this.className?this.className:this.xtype)+"@"+this.id
 		},
 		onDestroy: function(){},
 		init: function() {},
@@ -576,7 +573,7 @@
 			this.onDestroy();
 		}
 	});
-	Game.reg('object',Game.Object)
+	Game.reg("object",Game.Object)
 	
 	//下面是一些基础组件
 	
@@ -588,7 +585,7 @@
 		paused:false,
 		lastTimeout:0,
 		millisecond:1000,
-		className:'Game.util.Timer',
+		className:"Game.util.Timer",
 		initProxy: function(){
 			if(!this._start){
 				this._start = function(){
@@ -613,7 +610,7 @@
 			this.lastPlay = Date.now();
 		},
 		method: function(){
-			Game.info('override me please.');
+			Game.info("override me please.");
 		},
 		pause: function(){
 			if(!this.paused){
@@ -653,7 +650,7 @@
 			return this;
 		}
 	})
-	Game.reg('timer',Game.util.Timer);
+	Game.reg("timer",Game.util.Timer);
 	
 	//场景控制器，用来控制场景的切换
 	Game.ui.Container = Game.extend({
@@ -667,7 +664,7 @@
 		showFPS:true,
 		animateItems:{},
 		fullScreen:false,
-		className:'Game.ui.Container',
+		className:"Game.ui.Container",
 		changeScene: function(scene){
 			var scene_temp = this.scene;
 			this.scene = scene;
@@ -694,12 +691,12 @@
 				this.fullScreen = fullScreen;
 			}
 			this.canvas = canvas;
-			this.ctx = canvas.getContext('2d');
-			this.ctx.textBaseline = 'top';
-			this.task = Game.getCmp('timer-container-draw');
+			this.ctx = canvas.getContext("2d");
+			this.ctx.textBaseline = "top";
+			this.task = Game.getCmp("timer-container-draw");
 			this.initBox(canvas);
 			this.onInitContainer();
-			Game.getCmp('eventFire').onEvent(this);
+			Game.getCmp("eventFire").onEvent(this);
 		},
 		initBox: function(canvas){
 			this.height = document.body.scrollHeight;
@@ -717,7 +714,7 @@
 			}
 			this.canvas.height = this.height;
 			this.canvas.width = this.width;
-			canvas.style['margin-left'] = -this.width/2+'px';
+			canvas.style["margin-left"] = -this.width/2+"px";
 		},
 		onInitContainer: function(){},
 		addAnimateItem: function(item){
@@ -727,20 +724,20 @@
 			delete this.animateItems[item.id];
 		},
 		renderFrame: function(ctx){
-			ctx.textAlign = 'left',
-			ctx.textBaseline = 'top';
+			ctx.textAlign = "left",
+			ctx.textBaseline = "top";
 			ctx.font="16px sans-serif";
-			ctx.fillStyle = 'rgb(20,20,20)';
-			ctx.fillText('FPS:'+this.lastFrame,5,1);
+			ctx.fillStyle = "rgb(20,20,20)";
+			ctx.fillText("FPS:"+this.lastFrame,5,1);
 		},
 		startPlay: function(drawContainerInterval){
-			Game.getCmp('timer-container-draw').start(drawContainerInterval);
+			Game.getCmp("timer-container-draw").start(drawContainerInterval);
 			if(Game.enableDebug){
-				Game.getCmp('timer-container-renderFrame').start();
+				Game.getCmp("timer-container-renderFrame").start();
 			}
 		}
 	})
-	Game.reg('container',Game.ui.Container);
+	Game.reg("container",Game.ui.Container);
 	
 	//场景，场景可以用来被container切换
 	Game.ui.Scene = Game.extend({
@@ -751,7 +748,7 @@
 		clickAbleItems:[],
 		mousemoveAbleIndex:[],
 		mousemoveAbleItems:[],
-		className:'Game.ui.Scene',
+		className:"Game.ui.Scene",
 		addClickAbleItem: function(item){
 			if(!this.clickAbleItems[item.level]){
 				this.clickAbleItems[item.level] = {};
@@ -842,7 +839,7 @@
 				}
 			}
 			levelItems.length = 0;
-			this.superCall('destroy',this);
+			this.superCall(this.destroy);
 		},
 		addDestroyItem: function(item){
 			this.destroyItems[item.id] = item;
@@ -861,7 +858,7 @@
 			this.width = this.container.width;
 			this.xrate = this.container.xrate;
 			this.yrate = this.container.yrate;
-			this.eventFire = Game.getCmp('eventFire');
+			this.eventFire = Game.getCmp("eventFire");
 			this.createScene();
 			this.onInit();
 		},
@@ -870,7 +867,7 @@
 		show: function(){
 			this.beforeShow();
 			this.container.changeScene(this);
-			this.changeEventHandle(Game.getCmp('defaultEventHandle'));
+			this.changeEventHandle(Game.getCmp("defaultEventHandle"));
 			this.onShow();
 		},
 		hide: function(){
@@ -908,66 +905,66 @@
 		},
 		onMousemove: function(event,x,y){}
 	})	
-	Game.reg('scene',Game.ui.Scene);
+	Game.reg("scene",Game.ui.Scene);
 	
 	//有些情况下需要改变DOM事件分发策略
 	Game.util.EventFire = Game.extend({
-		className:'Game.util.EventFire',
+		className:"Game.util.EventFire",
 		onEvent: function(container){
 			container.canvas.onclick = function(event){
-				this.eventHandle.fireEvent('click',event);
+				this.eventHandle.fireEvent("click",event);
 			}.delegate(this);
 			/*
 			定位为手机方面
 			不要触发onmousemove
 			container.canvas.onmousemove = function(event){
-				this.eventHandle.fireEvent('mousemove',event);
+				this.eventHandle.fireEvent("mousemove",event);
 			}.delegate(this);
 			*/
 			container.canvas.oncontextmenu = function(event){
-				this.eventHandle.fireEvent('contextmenu',event);
+				this.eventHandle.fireEvent("contextmenu",event);
 				return false;
 			}.delegate(this);
 		}
 	})
-	Game.reg('eventFire',Game.util.EventFire);
+	Game.reg("eventFire",Game.util.EventFire);
 	
 	//可触发事件的
 	Game.util.EventHandle = Game.extend({
 		click: function(event,offsetX,offsetY){
-			Game.info('click@'+offsetX+','+offsetY);
+			Game.info("click@"+offsetX+","+offsetY);
 		},
 		mousemove: function(event,offsetX,offsetY){
-			//Game.info('mousemove@'+offsetX+','+offsetY);
+			//Game.info("mousemove@"+offsetX+","+offsetY);
 		},
 		contextmenu: function(event,offsetX,offsetY){
-			Game.info('contextmenu@'+offsetX+','+offsetY);
+			Game.info("contextmenu@"+offsetX+","+offsetY);
 		},
-		className:'Game.util.EventHandle',
+		className:"Game.util.EventHandle",
 		fireEvent: function(n,event){
 			switch(n){
-				case 'click':
+				case "click":
 					this.click(event,event.offsetX,event.offsetY);
 					break;
-				case 'contextmenu':
+				case "contextmenu":
 					this.contextmenu(event,event.offsetX,event.offsetY);
 					break;
-				case 'mousemove':
+				case "mousemove":
 					this.mousemove(event,event.offsetX,event.offsetY);
 					break;
 				default :
-					Game.info('unknow event:'+n);
+					Game.info("unknow event:"+n);
 					break;
 			}
 		}
 	})
-	Game.reg('eventHandle',Game.util.EventHandle);
+	Game.reg("eventHandle",Game.util.EventHandle);
 	
 	//默认的事件处理
 	Game.util.DefaultEventHandle = Game.extend(Game.util.EventHandle,{
-		className:'Game.util.DefaultEventHandle',
+		className:"Game.util.DefaultEventHandle",
 		click: function(event,x,y){
-			Game.info('CLICK START:'+Date.now());
+			Game.info("CLICK START:"+Date.now());
 			var clickAbleIndex = this.scene.clickAbleIndex;
 			var clickAbleItems = this.scene.clickAbleItems;
 			OUTER:
@@ -978,15 +975,15 @@
 					var item = items[j];
 					if(x > item.bx && x < item.ex && y > item.by && y < item.ey){
 						item.click(event,x,y);
-						Game.info('CLICK   END:'+Date.now());
-						Game.info('');
+						Game.info("CLICK   END:"+Date.now());
+						Game.info("");
 						//break OUTER;
 						return ;
 					}
 				}
 			}
 			this.scene.click(event,x,y);
-			Game.info('CLICK   END:'+Date.now());
+			Game.info("CLICK   END:"+Date.now());
 		},
 		mousemove: function(event,x,y){
 			var mousemoveAbleIndex = this.scene.mousemoveAbleIndex;
@@ -1007,11 +1004,11 @@
 			this.scene.mousemove(event,x,y);
 		}
 	})
-	Game.reg('defaultEventHandle',Game.util.DefaultEventHandle);
+	Game.reg("defaultEventHandle",Game.util.DefaultEventHandle);
 	
 	//对话框的事件分发
 	Game.util.DialogBlankEventHandle = Game.extend(Game.util.EventHandle,{
-		className:'Game.util.DialogBlankEventFire',
+		className:"Game.util.DialogBlankEventFire",
 		click: function(event,x,y){
 			// do nothing
 		},
@@ -1019,7 +1016,7 @@
 			// do nothing
 		}
 	})
-	Game.reg('dialogBlankEventHandle',Game.util.DialogBlankEventHandle);
+	Game.reg("dialogBlankEventHandle",Game.util.DialogBlankEventHandle);
 	
 	//加载能够加载对象帮助工具
 	Game.util.SourceLoader = Game.extend({
@@ -1028,7 +1025,7 @@
 		loadIndex:0,
 		itemArray:[],
 		currentInitSize:0,
-		className:'Game.util.SourceLoader',
+		className:"Game.util.SourceLoader",
 		load: function(){
 			if(this.itemSize == this.currentInitSize){
 				this.progress = 100;
@@ -1044,11 +1041,11 @@
 			}else{
 				this.progress = parseInt((this.currentInitSize/this.itemSize)*100)
 			}
-			//Game.info('loader progress:'+this.progress+'%');
+			//Game.info("loader progress:"+this.progress+"%");
 		},
 		onLoad: function(){},
 		addItem: function(item){
-			item['loader'] = this;
+			item["loader"] = this;
 			item.initSource();
 			this.onAddItem(item);
 		},
@@ -1058,14 +1055,14 @@
 			this.load();
 		}
 	})
-	Game.reg('sourceLoader',Game.util.SourceLoader);
+	Game.reg("sourceLoader",Game.util.SourceLoader);
 	
 	//任何源，能够加载的对象都属于source
 	Game.util.Source = Game.extend({
 		cache:true,
 		loaded:false,
 		onLoad: function(){},
-		className:'Game.util.Source',
+		className:"Game.util.Source",
 		initSource: function(){
 			this.create();
 			this.dom.onload = function(){
@@ -1080,32 +1077,32 @@
 			this.onLoad();
 		}
 	})
-	Game.reg('source',Game.util.Source);
+	Game.reg("source",Game.util.Source);
 	
 	//Javascript载体
 	Game.util.Javascript = Game.extend(Game.util.Source,{
-		className:'Game.util.Javascript',
+		className:"Game.util.Javascript",
 		create: function(){
-			this.dom = document.createElement('script');
-			this.dom.src = this.src+(this.cache?'':'?r='+Date.now());
+			this.dom = document.createElement("script");
+			this.dom.src = this.src+(this.cache?"":"?r="+Date.now());
 			this.dom.type = "text/javascript";
 		},
 		load: function(){
-			document.getElementsByTagName('head')[0].appendChild(this.dom);
+			document.getElementsByTagName("head")[0].appendChild(this.dom);
 		},
 		onLoad: function(){
 			//do nothing
 		}	
 	})
-	Game.reg('js',Game.util.Javascript);
+	Game.reg("js",Game.util.Javascript);
 	
 	//Image载体
 	Game.ui.Image = Game.extend(Game.util.Source,{
 		cache:false,
-		className:'Game.ui.Image',
+		className:"Game.ui.Image",
 		create: function(){
 			this.dom = new Image();
-			this.dom.src = this.src+(this.cache?'':'?r='+Date.now());
+			this.dom.src = this.src+(this.cache?"":"?r="+Date.now());
 		},
 		doLoad: function(){
 			this.width = this.dom.naturalWidth;
@@ -1116,15 +1113,15 @@
 			return this.dom;
 		}
 	})
-	Game.reg('image',Game.ui.Image);
+	Game.reg("image",Game.ui.Image);
 	
 	//Audio载体
 	Game.util.Audio = Game.extend(Game.util.Source,{
-		className:'Game.util.Audio',
+		className:"Game.util.Audio",
 		autoPlay: false,
 		create: function(){
 			this.dom = new Audio();
-			this.dom.src = this.src+(this.cache?'':'?r='+Date.now());
+			this.dom.src = this.src+(this.cache?"":"?r="+Date.now());
 			this.dom.addEventListener("canplaythrough", function(e) {
 				this.loaded = true;
 				this.loader.addLoadedItem(this);
@@ -1222,7 +1219,7 @@
 			
 		}
 	})
-	Game.reg('audio',Game.util.Audio);
+	Game.reg("audio",Game.util.Audio);
 	
 	
 	//可绘画的
@@ -1241,7 +1238,7 @@
 		clickAble:false,
 		mousemoveLevel:1,
 		mousemoveAble:false,
-		className:'Game.ui.DrawAble',
+		className:"Game.ui.DrawAble",
 		click: function(event,x,y){
 			this.onClick(event,x,y);
 		},
@@ -1300,17 +1297,17 @@
 			if(this.mousemoveAble){
 				this.scene.removeClickAbleItem(this)
 			}
-			this.superCall('destroy',this);
+			this.superCall(this.destroy)
 		}
 	});
-	Game.reg('drawAble',Game.ui.DrawAble);
+	Game.reg("drawAble",Game.ui.DrawAble);
 	
 	//可动画的
 	Game.ui.AnimateAble = Game.extend(Game.ui.DrawAble,{
 		moveAble:true,
 		showAnimate:false,
 		_showAnimate:false,
-		className:'Game.ui.AnimateAble',
+		className:"Game.ui.AnimateAble",
 		doAnimate: function(){
 			if(this.showAnimate){
 				var now = null;
@@ -1379,7 +1376,7 @@
 		},
 		render: function(ctx){}
 	})
-	Game.reg('animateAble',Game.ui.AnimateAble);
+	Game.reg("animateAble",Game.ui.AnimateAble);
 	
 	//一张包含多张小图片动画组合的图片
 	Game.ui.MixImage = Game.extend(Game.ui.AnimateAble,{
@@ -1389,7 +1386,7 @@
 		calcRated:false,
 		currentImgIndex:0,
 		currentImgInterval:0,
-		className:'Game.ui.MixImage',
+		className:"Game.ui.MixImage",
 		convertImgLocation: function(){
 			var xrate = this.xrate * this.scene.xrate;
 			var yrate = this.yrate * this.scene.yrate;
@@ -1424,11 +1421,11 @@
 			this.bx = this.images[0].bx;
 			this.by = this.images[0].by;
 			if(this.images.length < 2){
-				throw 'please use ImageHolder';
+				throw "please use ImageHolder";
 			}
 			this.onInit();
 			if(!this.imgDom){
-				throw 'none image dom found!';
+				throw "none image dom found!";
 			}
 		},
 		animate: function(){
@@ -1478,7 +1475,7 @@
 			this.renderHeight = this.img.renderHeight;
 		}
 	})
-	Game.reg('mixImage',Game.ui.MixImage);
+	Game.reg("mixImage",Game.ui.MixImage);
 	
 	//图片承载，可以在多个位置显示一张图片资源
 	Game.ui.ImageHolder = Game.extend(Game.ui.AnimateAble,{
@@ -1487,7 +1484,7 @@
 		offsetX:0,
 		offsetY:0,
 		currentImgInterval:0,
-		className:'Game.ui.ImageHolder',
+		className:"Game.ui.ImageHolder",
 		init: function(){
 			this.beforeInit();
 			if(!this.xrate){
@@ -1536,12 +1533,13 @@
 			}
 		}
 	})
-	Game.reg('imageHolder',Game.ui.ImageHolder);
+	Game.reg("imageHolder",Game.ui.ImageHolder);
 	
 	//对话框
 	Game.ui.MsgBox = Game.extend(Game.ui.ImageHolder,{
 		level:5,
 		dialog:true,
+		className:"Game.ui.MsgBox",
 		init: function(){
 			this.beforeInit();
 			if(!this.xrate){
@@ -1570,7 +1568,7 @@
 			this.offsetY = this.offsetY * this.yrate * this.scene.yrate;
 			this.bx = this.x + this.offsetX;
 			this.by = this.y + this.offsetY;
-			this.dialogBg = Game.getCmp('dialogBg');
+			this.dialogBg = Game.getCmp("dialogBg");
 			this.onInit();
 			this.imgDom = this.img.dom;
 			if(this.autoShow){
@@ -1578,17 +1576,17 @@
 			}
 		},
 		hide: function(){
-			this.superCall('hide',this);
+			this.superCall(this.hide);
 			this.dialogBg.hide();
 			this.onHide();
 		},
 		show: function(args){
-			this.superCall('show',this,args);
+			this.superCall(this.show,args);
 			this.dialogBg.show(this.scene);
 			this.onShow();
 		}
 	})
-	Game.reg('msgBox',Game.ui.MsgBox);
+	Game.reg("msgBox",Game.ui.MsgBox);
 
 	/*
 	frameX:166,//在大图中X坐标
@@ -1610,7 +1608,8 @@
 	Game.ui.DialogBg = Game.extend(Game.ui.DrawAble,{
 		level:4,
 		clickAble:true,
-		backgroundColor:'rgba(255, 255, 255, 0.3)',
+		className:"Game.ui.DialogBg",
+		backgroundColor:"rgba(255, 255, 255, 0.3)",
 		render: function(ctx){
 			ctx.fillStyle = this.backgroundColor;
 			ctx.fillRect(0,0,this.scene.width, this.scene.height);
@@ -1620,21 +1619,21 @@
 			this.renderHeight = this.scene.height;
 		},
 		onClick: function(event,x,y){
-			Game.info(x+','+y);
+			Game.info(x+","+y);
 		}
 	})
-	Game.reg('dialogBg',Game.ui.DialogBg);
+	Game.reg("dialogBg",Game.ui.DialogBg);
 	
 	//桌面上的文字
 	Game.ui.Text = Game.extend(Game.ui.AnimateAble,{
 		fill:true,
-		textAlign:'left',
-		textBaseline:'top',
-		font:'20px sans-serif',
-		className:'Game.ui.Text',
-		fillStyle:'rgba(20,20,20,1)',
-		strokeStyle:'rgba(20,20,20,1)',
-		className:'Game.ui.Text',
+		textAlign:"left",
+		textBaseline:"top",
+		font:"20px sans-serif",
+		className:"Game.ui.Text",
+		fillStyle:"rgba(20,20,20,1)",
+		strokeStyle:"rgba(20,20,20,1)",
+		className:"Game.ui.Text",
 		render: function(ctx){
 			ctx.textAlign=this.textAlign;
 			ctx.textBaseline=this.textBaseline;
@@ -1662,7 +1661,7 @@
 			}
 		}
 	})
-	Game.reg('text',Game.ui.Text);
+	Game.reg("text",Game.ui.Text);
 	
 	//下面是一些插件
 	
@@ -1674,11 +1673,11 @@
 		showAnimate:true,
 		autoAnimate:true,
 		_showAnimate:true,
-		progressTextAlign:'center',
-		progressFont:'10px sans-serif',
-		progressFillStyle:'rgb(20,20,20)',
-		backgroundColor:'rgba(255, 255, 255, 0.5)',
-		className:'Game.ui.Loading',
+		progressTextAlign:"center",
+		progressFont:"10px sans-serif",
+		progressFillStyle:"rgb(20,20,20)",
+		backgroundColor:"rgba(255, 255, 255, 0.5)",
+		className:"Game.ui.Loading",
 		beforeRender: function(ctx){
 			ctx.fillStyle = this.backgroundColor;
 			ctx.fillRect(0,0,this.scene.width, this.scene.height);
@@ -1693,8 +1692,8 @@
 			ctx.fillStyle=this.progressFillStyle;
 			ctx.textAlign=this.progressTextAlign;
 			ctx.font = this.progressFont;
-			ctx.textBaseline = 'middle';
-			ctx.fillText(this.scene.container.loader.progress+'%',0,0);
+			ctx.textBaseline = "middle";
+			ctx.fillText(this.scene.container.loader.progress+"%",0,0);
 		},
 		render: function(ctx){
 			this.beforeRender(ctx);
@@ -1740,30 +1739,30 @@
 			this.hide();
 		}
 	})
-	Game.reg('loading',Game.ui.Loading);
+	Game.reg("loading",Game.ui.Loading);
 	
 	//桌面初始化时候的Loading图案
 	Game.ui.BasicLoading = Game.extend(Game.ui.Loading,{
-		className:'Game.ui.BasicLoading',
+		className:"Game.ui.BasicLoading",
 		setFillStyle: function(ctx,i){
-			ctx.fillStyle = 'rgb('+(255-30*i)+',255,'+(247+i)+')';
+			ctx.fillStyle = "rgb("+(255-30*i)+",255,"+(247+i)+")";
 		},
 		arc: function(ctx,i){
 			ctx.arc(0,35,4+i*0.5,0,Math.PI*2,true);
 		}
 	})
-	Game.reg('basicLoading',Game.ui.BasicLoading);
+	Game.reg("basicLoading",Game.ui.BasicLoading);
 	
 	//桌面初始化时候的BoxBootLoading图案
 	Game.ui.BoxBootLogoLoading = Game.extend(Game.ui.Loading,{
-		className:'Game.ui.BoxBootLogoLoading',
+		className:"Game.ui.BoxBootLogoLoading",
 		beforeRender: function(ctx){
-			ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+			ctx.fillStyle = "rgba(0, 0, 0, 1)";
 			ctx.fillRect(0,0,this.scene.width, this.scene.height);
 			this.img.render(ctx);
 		},
 		setFillStyle: function(ctx,i){
-			ctx.fillStyle = 'rgb('+(255-5*i)+',255,'+(247+i)+')';
+			ctx.fillStyle = "rgb("+(255-5*i)+",255,"+(247+i)+")";
 		},
 		arc: function(ctx,i){
 			ctx.arc(0,20,1+i*0.3,0,Math.PI*2,true);
@@ -1776,7 +1775,7 @@
 			this.maxRotate = 360-this.rotateRate;
 		}
 	})
-	Game.reg('boxBootLogoLoading',Game.ui.BoxBootLogoLoading);
+	Game.reg("boxBootLogoLoading",Game.ui.BoxBootLogoLoading);
 	
 	//桌面第一次显示的渐显画面
 	Game.ui.AlphaShow = Game.extend(Game.ui.AnimateAble,{
@@ -1785,10 +1784,10 @@
 		alpha:1,
 		level:2,
 		_alpha:100,
-		rgb:'0, 0, 0',
-		className:'Game.ui.AlphaShow',
+		rgb:"0, 0, 0",
+		className:"Game.ui.AlphaShow",
 		render: function(ctx){
-			ctx.fillStyle = 'rgba('+this.rgb+', '+this.alpha+')';
+			ctx.fillStyle = "rgba("+this.rgb+", "+this.alpha+")";
 			ctx.fillRect(0,0,this.scene.width, this.scene.height);
 		},
 		onAnimate: function(){
@@ -1807,12 +1806,12 @@
 			this.startAnimate();
 		}
 	})
-	Game.reg('alphaShow',Game.ui.AlphaShow);
+	Game.reg("alphaShow",Game.ui.AlphaShow);
 	
 	//桌面上的背景
 	Game.ui.Background = Game.extend(Game.ui.ImageHolder,{
 		level:0,
-		className:'Game.ui.Background',
+		className:"Game.ui.Background",
 		init: function(){
 			this.beforeInit();
 			this.frameWidth = this.img.width;
@@ -1826,12 +1825,12 @@
 			}
 		},
 	})
-	Game.reg('bg',Game.ui.Background);
+	Game.reg("bg",Game.ui.Background);
 	
 	//BoxBootLogo
 	Game.ui.PopLogo = Game.extend(Game.ui.ImageHolder,{
 		rate:0.7,
-		className:'Game.ui.PopLogo',
+		className:"Game.ui.PopLogo",
 		init: function(ctx){
 			this.beforeInit();
 			if(!this.xrate){
@@ -1860,7 +1859,7 @@
 			this.offsetY = this.offsetY * this.yrate * this.scene.yrate;
 			this.bx = this.x + this.offsetX;
 			this.by = this.y + this.offsetY;
-			this.dialogBg = Game.getCmp('dialogBg');
+			this.dialogBg = Game.getCmp("dialogBg");
 			this.onInit();
 			this.imgDom = this.img.dom;
 			if(this.autoShow){
@@ -1868,24 +1867,24 @@
 			}
 		}
 	})
-	Game.reg('popLogo',Game.ui.PopLogo);
+	Game.reg("popLogo",Game.ui.PopLogo);
 	
 	//基础对象- - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	//image loader
-	Game.create('sourceLoader',{id:'sourceLoader',itemSize:1});
+	Game.create("sourceLoader",{id:"sourceLoader",itemSize:1});
 	
 	//默认的事件处理
-	Game.create('defaultEventHandle',{id:'defaultEventHandle'});
+	Game.create("defaultEventHandle",{id:"defaultEventHandle"});
 	
 	//主控制器
-	window.container = Game.create('container',{loader:Game.getCmp('sourceLoader')});
+	window.container = Game.create("container",{loader:Game.getCmp("sourceLoader")});
 	
 	
 	//主要定时任务监视器，根据系统性能每隔一定重绘桌面
-	Game.create('timer',{
+	Game.create("timer",{
 		millisecond:15,
-		id:'timer-container-draw',
+		id:"timer-container-draw",
 		method: function(){
 			this.container.drawContainer();
 		},
@@ -1897,9 +1896,9 @@
 	
 	//主要定时任务监视器，每隔1000毫秒计算帧率
 
-	Game.create('timer',{
+	Game.create("timer",{
 		millisecond:1000,
-		id:'timer-container-renderFrame',
+		id:"timer-container-renderFrame",
 		container:window.container,
 		method: function(){
 			this.container.lastFrame = this.container.frame;
@@ -1915,25 +1914,21 @@
 	
 	
 	//默认的EventFire
-	Game.create('eventFire',{id:'eventFire'});
+	Game.create("eventFire",{id:"eventFire"});
 	
 	//默认遮罩层
-	Game.create('dialogBg',{id:'dialogBg'});
+	Game.create("dialogBg",{id:"dialogBg"});
 	
 	//Logo加载动画
-	Game.create('boxBootLogoLoading',{id:'box-boot-loading',showAnimate:true,progressFillStyle:'rgb(255,255,255)'});
+	Game.create("boxBootLogoLoading",{id:"box-boot-loading",showAnimate:true,progressFillStyle:"rgb(255,255,255)"});
 	
 	//basic loading
-	Game.create('basicLoading',{id:'basicLoading'});
+	Game.create("basicLoading",{id:"basicLoading"});
 	
 	//Dialog
-	Game.create('dialogBlankEventHandle',{id:'dialogBlankEventHandle'});
+	Game.create("dialogBlankEventHandle",{id:"dialogBlankEventHandle"});
 	
 	//
 	window.onresize = function(){}
 	
 })(window.Game)
-//初学乍练，初窥门径，略知一二，粗通皮毛，登堂入室，驾轻就熟，
-//青出於蓝，融会贯通，炉火纯青，出类拔萃，技冠群雄，出神入化，傲视群雄，登峰造极，
-//惊世骇俗，震古铄今，威镇寰宇，空前绝后，天人合一，返璞归真
-//籍籍无名 初露锋芒 误入歧途 问鼎天下 独步武林 独孤求败 道法自然
